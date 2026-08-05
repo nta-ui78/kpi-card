@@ -1,74 +1,68 @@
 const params = new URLSearchParams(window.location.search);
 
-const title = params.get("title") || "Revenue";
-const subtitle = params.get("subtitle") || "This Month";
-const rawValue = params.get("value") || "€0";
-const trend = params.get("trend") || "+0%";
-const icon = params.get("icon") || "💰";
-const color = params.get("color") || "positive";
+const title =
+params.get("title") || "Revenue";
+
+const value =
+params.get("value") || "0";
+
+const trend =
+params.get("trend") || "↑ 0%";
+
+const subtitle =
+params.get("subtitle") || "This Month";
+
+const color =
+params.get("color") || "positive";
 
 document.getElementById("title").textContent = title;
 document.getElementById("subtitle").textContent = subtitle;
-document.getElementById("trend").textContent = trend;
-const iconElement = document.getElementById("icon");
 
-iconElement.setAttribute("data-lucide", icon);
+const trendElement =
+document.getElementById("trend");
 
-if(window.lucide){
+trendElement.textContent = trend;
+trendElement.className = "trend " + color;
 
-    lucide.createIcons();
+const valueElement =
+document.getElementById("value");
 
-}
-document.getElementById("trend").className = "trend " + color;
+function animate(){
 
-function animateValue(element, value) {
+let start=0;
 
-    const isCurrency = value.includes("€");
-    const isPercent = value.includes("%");
+const end=parseInt(value.replace(/\D/g,'')) || 0;
 
-    let endValue = Number(value.replace(/[^\d.-]/g, ""));
+const duration=900;
 
-    if (isNaN(endValue)) {
-        element.textContent = value;
-        return;
-    }
+const startTime=performance.now();
 
-    const duration = 900;
-    const start = performance.now();
+function frame(now){
 
-    function frame(now) {
+const progress=Math.min((now-startTime)/duration,1);
 
-        const progress = Math.min((now - start) / duration, 1);
+const current=Math.floor(progress*end);
 
-        const current = Math.floor(endValue * progress);
+if(value.includes("€")){
 
-        if (isCurrency) {
+valueElement.textContent="€"+current.toLocaleString();
 
-            element.textContent = "€" + current.toLocaleString();
+}else{
 
-        } else if (isPercent) {
-
-            element.textContent = current + "%";
-
-        } else {
-
-            element.textContent = current.toLocaleString();
-
-        }
-
-        if (progress < 1) {
-
-            requestAnimationFrame(frame);
-
-        }
-
-    }
-
-    requestAnimationFrame(frame);
+valueElement.textContent=current.toLocaleString();
 
 }
 
-animateValue(
-    document.getElementById("value"),
-    rawValue
-);
+if(progress<1){
+
+requestAnimationFrame(frame);
+
+}
+
+}
+
+requestAnimationFrame(frame);
+
+}
+
+animate();
