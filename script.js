@@ -1,79 +1,66 @@
-const params=new URLSearchParams(window.location.search);
+const params = new URLSearchParams(window.location.search);
 
-const title=params.get("title") || "Revenue";
+const title = params.get("title") || "Revenue";
+const subtitle = params.get("subtitle") || "This Month";
+const rawValue = params.get("value") || "€0";
+const trend = params.get("trend") || "+0%";
+const icon = params.get("icon") || "💰";
+const color = params.get("color") || "positive";
 
-const subtitle=params.get("subtitle") || "This Month";
+document.getElementById("title").textContent = title;
+document.getElementById("subtitle").textContent = subtitle;
+document.getElementById("trend").textContent = trend;
+document.getElementById("icon").textContent = icon;
+document.getElementById("trend").className = "trend " + color;
 
-const value=params.get("value") || "€0";
+function animateValue(element, value) {
 
-const trend=params.get("trend") || "+0%";
+    const isCurrency = value.includes("€");
+    const isPercent = value.includes("%");
 
-const icon=params.get("icon") || "💰";
+    let endValue = Number(value.replace(/[^\d.-]/g, ""));
 
-const color=params.get("color") || "positive";
-
-document.getElementById("title").textContent=title;
-
-document.getElementById("subtitle").textContent=subtitle;
-
-const rawValue = params.get("value") || "0";
-
-function animateValue(target, endValue, prefix = "", suffix = "") {
+    if (isNaN(endValue)) {
+        element.textContent = value;
+        return;
+    }
 
     const duration = 900;
-    const startTime = performance.now();
+    const start = performance.now();
 
-    function update(currentTime){
+    function frame(now) {
 
-        const progress = Math.min((currentTime - startTime) / duration, 1);
+        const progress = Math.min((now - start) / duration, 1);
 
-        const current = Math.floor(progress * endValue);
+        const current = Math.floor(endValue * progress);
 
-        target.textContent =
-            prefix +
-            current.toLocaleString() +
-            suffix;
+        if (isCurrency) {
 
-        if(progress < 1){
+            element.textContent = "€" + current.toLocaleString();
 
-            requestAnimationFrame(update);
+        } else if (isPercent) {
 
-        }else{
+            element.textContent = current + "%";
 
-            target.textContent =
-                prefix +
-                endValue.toLocaleString() +
-                suffix;
+        } else {
+
+            element.textContent = current.toLocaleString();
+
+        }
+
+        if (progress < 1) {
+
+            requestAnimationFrame(frame);
 
         }
 
     }
 
-    requestAnimationFrame(update);
+    requestAnimationFrame(frame);
 
 }
 
-const valueElement = document.getElementById("value");
-
-if(rawValue.includes("€")){
-
-    animateValue(
-        valueElement,
-        Number(rawValue.replace(/[^\d]/g,"")),
-        "€"
-    );
-
-}else{
-
-    animateValue(
-        valueElement,
-        Number(rawValue)
-    );
-
-}
-
-document.getElementById("trend").textContent=trend;
-
-document.getElementById("icon").textContent=icon;
-
-document.getElementById("trend").className="trend "+color;
+animateValue(
+    document.getElementById("value"),
+    rawValue
+);
