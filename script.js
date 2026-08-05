@@ -11,12 +11,23 @@ params.get("trend") || "↑ 0%";
 
 const subtitle =
 params.get("subtitle") || "This Month";
+const category =
+params.get("category") || "finance";
+
+const emoji =
+params.get("emoji") || "💰";
 
 const color =
 params.get("color") || "positive";
 
 document.getElementById("title").textContent = title;
 document.getElementById("subtitle").textContent = subtitle;
+const iconBox =
+document.getElementById("iconBox");
+
+iconBox.classList.add(category);
+
+iconBox.textContent = emoji;
 
 const trendElement =
 document.getElementById("trend");
