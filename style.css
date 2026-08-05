@@ -86,6 +86,17 @@ font-size:24px;
 flex-shrink:0;
 
 }
+.icon svg{
+
+width:26px;
+
+height:26px;
+
+stroke:#4F46E5;
+
+stroke-width:2.2;
+
+}
 
 .title{
 
