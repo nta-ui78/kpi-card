@@ -114,24 +114,39 @@ font-size:14px;
 
 .trend{
 
+display:inline-flex;
+align-items:center;
+justify-content:center;
+
+padding:6px 10px;
+
+border-radius:999px;
+
+font-size:12px;
+
 font-weight:700;
+
+transition:.2s;
 
 }
 
 .positive{
 
+background:#ECFDF3;
 color:#16A34A;
 
 }
 
 .negative{
 
+background:#FEF2F2;
 color:#DC2626;
 
 }
 
 .neutral{
 
+background:#F3F4F6;
 color:#6B7280;
 
 }
