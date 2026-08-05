@@ -1,13 +1,19 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 
 <title>Atlas KPI</title>
 
 <link rel="stylesheet" href="style.css">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
 </head>
 
@@ -15,32 +21,40 @@
 
 <div class="card">
 
-    <div class="top">
+    <div class="header">
 
-        <div class="icon" id="icon"></div>
+        <span class="title" id="title">
+            Revenue
+        </span>
 
-        <div>
-
-            <div class="title" id="title"></div>
-
-            <div class="subtitle" id="subtitle"></div>
-
-        </div>
+        <span class="dot"></span>
 
     </div>
 
-    <div class="value" id="value"></div>
+    <div class="value" id="value">
+        €0
+    </div>
 
-    <div class="bottom">
+    <div class="footer">
 
-        <div class="trend positive" id="trend"></div>
+        <span id="trend" class="trend positive">
+
+            ↑ 12%
+
+        </span>
+
+        <span id="subtitle">
+
+            This Month
+
+        </span>
 
     </div>
 
 </div>
 
-<script src="icons.js"></script>
 <script src="script.js"></script>
 
 </body>
+
 </html>
