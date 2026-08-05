@@ -10,7 +10,10 @@ const color = params.get("color") || "positive";
 document.getElementById("title").textContent = title;
 document.getElementById("subtitle").textContent = subtitle;
 document.getElementById("trend").textContent = trend;
-document.getElementById("icon").textContent = icon;
+document.getElementById("icon")
+.setAttribute("data-lucide", icon);
+
+lucide.createIcons();
 document.getElementById("trend").className = "trend " + color;
 
 function animateValue(element, value) {
