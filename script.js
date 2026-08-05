@@ -16,7 +16,61 @@ document.getElementById("title").textContent=title;
 
 document.getElementById("subtitle").textContent=subtitle;
 
-document.getElementById("value").textContent=value;
+const rawValue = params.get("value") || "0";
+
+function animateValue(target, endValue, prefix = "", suffix = "") {
+
+    const duration = 900;
+    const startTime = performance.now();
+
+    function update(currentTime){
+
+        const progress = Math.min((currentTime - startTime) / duration, 1);
+
+        const current = Math.floor(progress * endValue);
+
+        target.textContent =
+            prefix +
+            current.toLocaleString() +
+            suffix;
+
+        if(progress < 1){
+
+            requestAnimationFrame(update);
+
+        }else{
+
+            target.textContent =
+                prefix +
+                endValue.toLocaleString() +
+                suffix;
+
+        }
+
+    }
+
+    requestAnimationFrame(update);
+
+}
+
+const valueElement = document.getElementById("value");
+
+if(rawValue.includes("€")){
+
+    animateValue(
+        valueElement,
+        Number(rawValue.replace(/[^\d]/g,"")),
+        "€"
+    );
+
+}else{
+
+    animateValue(
+        valueElement,
+        Number(rawValue)
+    );
+
+}
 
 document.getElementById("trend").textContent=trend;
 
