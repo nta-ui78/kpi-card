@@ -1,79 +1,104 @@
 const params = new URLSearchParams(window.location.search);
 
-const title =
-params.get("title") || "Revenue";
-
-const value =
-params.get("value") || "0";
-
-const trend =
-params.get("trend") || "↑ 0%";
-
-const subtitle =
-params.get("subtitle") || "This Month";
-const category =
-params.get("category") || "finance";
-
-const emoji =
-params.get("emoji") || "💰";
-
-const color =
-params.get("color") || "positive";
+const title = params.get("title") || "Revenue";
+const subtitle = params.get("subtitle") || "This Month";
+const category = params.get("category") || "finance";
+const emoji = params.get("emoji") || "💰";
+const color = params.get("color") || "positive";
 
 document.getElementById("title").textContent = title;
 document.getElementById("subtitle").textContent = subtitle;
-const iconBox =
-document.getElementById("iconBox");
 
+const iconBox = document.getElementById("iconBox");
 iconBox.classList.add(category);
-
 iconBox.textContent = emoji;
 
-const trendElement =
-document.getElementById("trend");
-
-trendElement.textContent = trend;
+const trendElement = document.getElementById("trend");
 trendElement.className = "trend " + color;
 
-const valueElement =
-document.getElementById("value");
+const valueElement = document.getElementById("value");
 
-function animate(){
+function animateValue(end) {
+  const duration = 900;
+  const startTime = performance.now();
 
-let start=0;
+  function frame(now) {
+    const progress = Math.min(
+      (now - startTime) / duration,
+      1
+    );
 
-const end=parseInt(value.replace(/\D/g,'')) || 0;
+    const current = Math.floor(progress * end);
 
-const duration=900;
+    valueElement.textContent =
+      "€" + current.toLocaleString("en-US");
 
-const startTime=performance.now();
+    if (progress < 1) {
+      requestAnimationFrame(frame);
+    }
+  }
 
-function frame(now){
-
-const progress=Math.min((now-startTime)/duration,1);
-
-const current=Math.floor(progress*end);
-
-if(value.includes("€")){
-
-valueElement.textContent="€"+current.toLocaleString();
-
-}else{
-
-valueElement.textContent=current.toLocaleString();
-
+  requestAnimationFrame(frame);
 }
 
-if(progress<1){
+async function loadRevenue() {
+  try {
+    valueElement.textContent = "€0";
+    trendElement.textContent = "↑ 0%";
 
-requestAnimationFrame(frame);
+    const response = await fetch("/api/notion");
 
+    if (!response.ok) {
+      throw new Error("Failed to load Notion data");
+    }
+
+    const data = await response.json();
+
+    const transactions = data.results || [];
+
+    const now = new Date();
+
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    let revenue = 0;
+
+    transactions.forEach((transaction) => {
+      const properties = transaction.properties || {};
+
+      const direction =
+        properties["Direction"]?.formula?.string;
+
+      const amount =
+        properties["Amount"]?.number;
+
+      const date =
+        properties["Date"]?.date?.start;
+
+      if (
+        direction === "Income" &&
+        typeof amount === "number" &&
+        date
+      ) {
+        const transactionDate = new Date(date);
+
+        if (
+          transactionDate.getMonth() === currentMonth &&
+          transactionDate.getFullYear() === currentYear
+        ) {
+          revenue += amount;
+        }
+      }
+    });
+
+    animateValue(revenue);
+
+  } catch (error) {
+    console.error("Revenue error:", error);
+
+    valueElement.textContent = "€0";
+    trendElement.textContent = "—";
+  }
 }
 
-}
-
-requestAnimationFrame(frame);
-
-}
-
-animate();
+loadRevenue();
