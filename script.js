@@ -1,3 +1,4 @@
+
 const params = new URLSearchParams(window.location.search);
 
 const title = params.get("title") || "Revenue";
@@ -53,11 +54,9 @@ async function loadKPI() {
     }
 
     const data = await response.json();
-
     const transactions = data.results || [];
 
     const now = new Date();
-
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
 
@@ -84,30 +83,25 @@ async function loadKPI() {
 
       const transactionDate = new Date(date);
 
-      const isThisMonth =
-        transactionDate.getMonth() === currentMonth &&
-        transactionDate.getFullYear() === currentYear;
-
-      if (!isThisMonth) {
+      if (
+        transactionDate.getMonth() !== currentMonth ||
+        transactionDate.getFullYear() !== currentYear
+      ) {
         return;
       }
 
-      // REVENUE
-    if (title.toLowerCase() === "expenses") {
-  const transactionType =
-    properties["Transaction Type"]?.relation || [];
+      // REVENUE — păstrăm exact logica care funcționa
+      if (
+        title.toLowerCase() === "revenue" &&
+        direction === "Income"
+      ) {
+        total += amount;
+      }
 
-  const isExpense = transactionType.length > 0;
-
-  if (direction === "Outflow" && isExpense) {
-    total += amount;
-  }
-}
-
-      // EXPENSES
+      // EXPENSES — folosim Outflow
       if (
         title.toLowerCase() === "expenses" &&
-        direction === "Expense"
+        direction === "Outflow"
       ) {
         total += amount;
       }
