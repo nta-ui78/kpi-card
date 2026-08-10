@@ -41,7 +41,7 @@ function animateValue(end) {
   requestAnimationFrame(frame);
 }
 
-async function loadRevenue() {
+async function loadKPI() {
   try {
     valueElement.textContent = "€0";
     trendElement.textContent = "↑ 0%";
@@ -61,7 +61,7 @@ async function loadRevenue() {
     const currentMonth = now.getMonth();
     const currentYear = now.getFullYear();
 
-    let revenue = 0;
+    let total = 0;
 
     transactions.forEach((transaction) => {
       const properties = transaction.properties || {};
@@ -76,29 +76,47 @@ async function loadRevenue() {
         properties["Date"]?.date?.start;
 
       if (
-        direction === "Income" &&
-        typeof amount === "number" &&
-        date
+        typeof amount !== "number" ||
+        !date
       ) {
-        const transactionDate = new Date(date);
+        return;
+      }
 
-        if (
-          transactionDate.getMonth() === currentMonth &&
-          transactionDate.getFullYear() === currentYear
-        ) {
-          revenue += amount;
-        }
+      const transactionDate = new Date(date);
+
+      const isThisMonth =
+        transactionDate.getMonth() === currentMonth &&
+        transactionDate.getFullYear() === currentYear;
+
+      if (!isThisMonth) {
+        return;
+      }
+
+      // REVENUE
+      if (
+        title.toLowerCase() === "revenue" &&
+        direction === "Income"
+      ) {
+        total += amount;
+      }
+
+      // EXPENSES
+      if (
+        title.toLowerCase() === "expenses" &&
+        direction === "Expense"
+      ) {
+        total += amount;
       }
     });
 
-    animateValue(revenue);
+    animateValue(total);
 
   } catch (error) {
-    console.error("Revenue error:", error);
+    console.error("KPI error:", error);
 
     valueElement.textContent = "€0";
     trendElement.textContent = "—";
   }
 }
 
-loadRevenue();
+loadKPI();
