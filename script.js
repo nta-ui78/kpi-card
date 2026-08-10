@@ -106,12 +106,11 @@ async function loadKPI() {
 
       // EXPENSES — folosim Outflow
       if (
-        title.toLowerCase() === "expenses" &&
-        direction === "Outflow"
-      ) {
-        total += amount;
-      }
-    });
+  title.toLowerCase() === "expenses" &&
+  direction === "Expense"
+) {
+  total += amount;
+}
 
     animateValue(total);
 
