@@ -1,4 +1,3 @@
-
 const params = new URLSearchParams(window.location.search);
 
 const title = params.get("title") || "Revenue";
@@ -73,12 +72,6 @@ async function loadKPI() {
 
       const date =
         properties["Date"]?.date?.start;
-      console.log("TRANSACTION:", {
-  title: transaction.properties?.Name?.title?.[0]?.plain_text,
-  amount,
-  direction,
-  date
-});
 
       if (
         typeof amount !== "number" ||
@@ -106,11 +99,12 @@ async function loadKPI() {
 
       // EXPENSES — folosim Outflow
       if (
-  title.toLowerCase() === "expenses" &&
-  direction === "Expense"
-) {
-  total += amount;
-}
+        title.toLowerCase() === "expenses" &&
+        direction === "Outflow"
+      ) {
+        total += amount;
+      }
+    });
 
     animateValue(total);
 
@@ -123,3 +117,4 @@ async function loadKPI() {
 }
 
 loadKPI();
+
