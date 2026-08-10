@@ -93,12 +93,16 @@ async function loadKPI() {
       }
 
       // REVENUE
-      if (
-        title.toLowerCase() === "revenue" &&
-        direction === "Income"
-      ) {
-        total += amount;
-      }
+    if (title.toLowerCase() === "expenses") {
+  const transactionType =
+    properties["Transaction Type"]?.relation || [];
+
+  const isExpense = transactionType.length > 0;
+
+  if (direction === "Outflow" && isExpense) {
+    total += amount;
+  }
+}
 
       // EXPENSES
       if (
