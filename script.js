@@ -73,6 +73,12 @@ async function loadKPI() {
 
       const date =
         properties["Date"]?.date?.start;
+      console.log("TRANSACTION:", {
+  title: transaction.properties?.Name?.title?.[0]?.plain_text,
+  amount,
+  direction,
+  date
+});
 
       if (
         typeof amount !== "number" ||
