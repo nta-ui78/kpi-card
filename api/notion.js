@@ -1,11 +1,14 @@
 export default async function handler(req, res) {
   try {
     if (req.method !== "GET") {
-      return res.status(405).json({ error: "Method not allowed" });
+      return res.status(405).json({
+        error: "Method not allowed"
+      });
     }
 
     const token = process.env.NOTION_TOKEN;
-    const dataSourceId = process.env.NOTION_TRANSACTIONS_DATA_SOURCE_ID;
+    const dataSourceId =
+      process.env.NOTION_TRANSACTIONS_DATA_SOURCE_ID;
 
     if (!token || !dataSourceId) {
       return res.status(500).json({
@@ -37,7 +40,42 @@ export default async function handler(req, res) {
       });
     }
 
-    return res.status(200).json(data);
+    const transactions = (data.results || []).map((transaction) => {
+      const properties = transaction.properties || {};
+
+      // Direction
+      const direction =
+        properties["Direction"]?.formula?.string || null;
+
+      // Type relation
+      const typeRelation =
+        properties["Type"]?.relation || [];
+
+      // From Account relation
+      const fromAccount =
+        properties["From Acc"]?.relation || [];
+
+      // To Account relation
+      const toAccount =
+        properties["To Acc"]?.relation || [];
+
+      return {
+        ...transaction,
+
+        kpi: {
+          direction,
+          typeIds: typeRelation.map((item) => item.id),
+          fromAccountIds: fromAccount.map((item) => item.id),
+          toAccountIds: toAccount.map((item) => item.id)
+        }
+      };
+    });
+
+    return res.status(200).json({
+      ...data,
+      results: transactions
+    });
+
   } catch (error) {
     return res.status(500).json({
       error: "Server error",
