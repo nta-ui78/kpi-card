@@ -41,6 +41,36 @@ function animateValue(end) {
   requestAnimationFrame(frame);
 }
 
+function getPropertyValue(property) {
+  if (!property) return null;
+
+  if (property.formula) {
+    if (property.formula.string !== null) {
+      return property.formula.string;
+    }
+
+    if (property.formula.number !== null) {
+      return property.formula.number;
+    }
+  }
+
+  if (property.select) {
+    return property.select.name;
+  }
+
+  if (property.status) {
+    return property.status.name;
+  }
+
+  if (property.rich_text?.length) {
+    return property.rich_text
+      .map(item => item.plain_text)
+      .join("");
+  }
+
+  return null;
+}
+
 async function loadKPI() {
   try {
     valueElement.textContent = "€0";
@@ -89,7 +119,7 @@ async function loadKPI() {
         return;
       }
 
-      // REVENUE
+      // REVENUE — EXACT LOGIC CARE FUNCȚIONEAZĂ
       if (
         title.toLowerCase() === "revenue" &&
         direction === "Income"
@@ -98,13 +128,39 @@ async function loadKPI() {
       }
 
       // EXPENSES
-      if (
-        title.toLowerCase() === "expenses" &&
-        direction === "Expense"
-      ) {
-        total += amount;
+      if (title.toLowerCase() === "expenses") {
+
+        const transactionType =
+          getPropertyValue(properties["Transaction Type"]);
+
+        const amountType =
+          getPropertyValue(properties["Amount Type"]);
+
+        const type =
+          getPropertyValue(properties["Type"]);
+
+        console.log("EXPENSE DEBUG:", {
+          amount,
+          date,
+          direction,
+          transactionType,
+          amountType,
+          type
+        });
+
+        if (
+          transactionType === "Expense" ||
+          amountType === "Expense" ||
+          type === "Expense" ||
+          direction === "Expense" ||
+          direction === "Outflow"
+        ) {
+          total += amount;
+        }
       }
     });
+
+    console.log("FINAL KPI:", title, total);
 
     animateValue(total);
 
