@@ -7,17 +7,29 @@ export default async function handler(req, res) {
     }
 
     const token = process.env.NOTION_TOKEN;
-    const dataSourceId =
+
+    const transactionsDataSourceId =
       process.env.NOTION_TRANSACTIONS_DATA_SOURCE_ID;
 
-    if (!token || !dataSourceId) {
+    const typesDataSourceId =
+      process.env.NOTION_TRANSACTION_TYPES_DATA_SOURCE_ID;
+
+    if (
+      !token ||
+      !transactionsDataSourceId ||
+      !typesDataSourceId
+    ) {
       return res.status(500).json({
         error: "Missing Notion environment variables"
       });
     }
 
-    const response = await fetch(
-      `https://api.notion.com/v1/data_sources/${dataSourceId}/query`,
+    // --------------------------------
+    // 1. GET TRANSACTIONS
+    // --------------------------------
+
+    const transactionsResponse = await fetch(
+      `https://api.notion.com/v1/data_sources/${transactionsDataSourceId}/query`,
       {
         method: "POST",
         headers: {
@@ -31,52 +43,141 @@ export default async function handler(req, res) {
       }
     );
 
-    const data = await response.json();
+    const transactionsData =
+      await transactionsResponse.json();
 
-    if (!response.ok) {
-      return res.status(response.status).json({
-        error: data.message || "Notion API error",
-        details: data
+    if (!transactionsResponse.ok) {
+      return res.status(transactionsResponse.status).json({
+        error:
+          transactionsData.message ||
+          "Transactions API error",
+        details: transactionsData
       });
     }
 
-    const transactions = (data.results || []).map((transaction) => {
-      const properties = transaction.properties || {};
+    // --------------------------------
+    // 2. GET TRANSACTION TYPES
+    // --------------------------------
 
-      // Direction
-      const direction =
-        properties["Direction"]?.formula?.string || null;
+    const typesResponse = await fetch(
+      `https://api.notion.com/v1/data_sources/${typesDataSourceId}/query`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Notion-Version": "2026-03-11",
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          page_size: 100
+        })
+      }
+    );
 
-      // Type relation
-      const typeRelation =
-        properties["Type"]?.relation || [];
+    const typesData = await typesResponse.json();
 
-      // From Account relation
-      const fromAccount =
-        properties["From Acc"]?.relation || [];
+    if (!typesResponse.ok) {
+      return res.status(typesResponse.status).json({
+        error:
+          typesData.message ||
+          "Transaction Types API error",
+        details: typesData
+      });
+    }
 
-      // To Account relation
-      const toAccount =
-        properties["To Acc"]?.relation || [];
+    // --------------------------------
+    // 3. CREATE TYPE ID → NAME MAP
+    // --------------------------------
 
-      return {
-        ...transaction,
+    const typeMap = {};
 
-        kpi: {
-          direction,
-          typeIds: typeRelation.map((item) => item.id),
-          fromAccountIds: fromAccount.map((item) => item.id),
-          toAccountIds: toAccount.map((item) => item.id)
+    (typesData.results || []).forEach((typePage) => {
+      const properties =
+        typePage.properties || {};
+
+      let name = null;
+
+      // Try Title
+      for (const key of Object.keys(properties)) {
+        const property = properties[key];
+
+        if (
+          property.type === "title" &&
+          property.title?.length
+        ) {
+          name = property.title
+            .map((item) => item.plain_text)
+            .join("");
+
+          break;
         }
-      };
+      }
+
+      if (name) {
+        typeMap[typePage.id] = name;
+      }
     });
 
+    // --------------------------------
+    // 4. ADD RESOLVED TYPE TO EACH
+    // TRANSACTION
+    // --------------------------------
+
+    const transactions =
+      (transactionsData.results || []).map(
+        (transaction) => {
+
+          const properties =
+            transaction.properties || {};
+
+          const direction =
+            properties["Direction"]?.formula?.string ||
+            null;
+
+          const amount =
+            properties["Amount"]?.number ??
+            null;
+
+          const date =
+            properties["Date"]?.date?.start ??
+            null;
+
+          const typeRelation =
+            properties["Type"]?.relation || [];
+
+          const typeIds =
+            typeRelation.map(
+              (item) => item.id
+            );
+
+          const typeNames =
+            typeIds
+              .map((id) => typeMap[id])
+              .filter(Boolean);
+
+          return {
+            ...transaction,
+
+            kpi: {
+              direction,
+              amount,
+              date,
+
+              typeIds,
+              typeNames
+            }
+          };
+        }
+      );
+
     return res.status(200).json({
-      ...data,
+      ...transactionsData,
       results: transactions
     });
 
   } catch (error) {
+    console.error(error);
+
     return res.status(500).json({
       error: "Server error",
       message: error.message
