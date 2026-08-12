@@ -89,7 +89,7 @@ async function loadKPI() {
         return;
       }
 
-      // REVENUE — păstrăm exact logica care funcționa
+      // REVENUE
       if (
         title.toLowerCase() === "revenue" &&
         direction === "Income"
@@ -97,10 +97,10 @@ async function loadKPI() {
         total += amount;
       }
 
-      // EXPENSES — folosim Outflow
+      // EXPENSES
       if (
         title.toLowerCase() === "expenses" &&
-        direction === "Outflow"
+        direction === "Expense"
       ) {
         total += amount;
       }
@@ -117,4 +117,3 @@ async function loadKPI() {
 }
 
 loadKPI();
-
